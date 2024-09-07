@@ -13,16 +13,20 @@ cd recipe-finder
 
 npm install
 
-## Step 3: Create .env File and Add Environment Variables
+## Step 3: Create `.env` File and Add Environment Variables
 
+Create a `.env` file in the root directory of the project and add the following environment variables:
+
+```env
 PORT=8000
-MONGODB_URI=
-ACCESS_TOKEN_SECRET=
-ACCESS_TOKEN_EXPIRY=
-REFRESH_TOKEN_SECRET=
-REFRESH_TOKEN_EXPIRY=
-SPOONACULAR_API_KEY=
+MONGODB_URI=<your uri>
+ACCESS_TOKEN_SECRET=123456
+ACCESS_TOKEN_EXPIRY=1d
+REFRESH_TOKEN_SECRET=9876543
+REFRESH_TOKEN_EXPIRY=10d
+SPOONACULAR_API_KEY=<your key>
 
+```
 ## Step 4: Run the Application in Development Mode
 
 npm run dev
