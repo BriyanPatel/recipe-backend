@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
       ref: "Recipe",
     },
   ],
+  searchPrefrence: {
+    type: [String],
+    default: [],
+  },
   refreshToken: {
     type: String,
   },
@@ -71,4 +75,3 @@ userSchema.methods.generateRefreshToken = async function () {
 };
 
 export const User = mongoose.model("User", userSchema);
-

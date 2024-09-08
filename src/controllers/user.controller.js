@@ -39,7 +39,25 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // get user details
   const { email, username, password } = req.body;
-  console.log(email, username, password);
+  const stringArray = [
+    "Apple",
+    "Banana",
+    "Mango",
+    "Cherry",
+    "Musk melon",
+    "Pineapple",
+    "Strawberry",
+  ];
+
+  // Function to get 3 random elements from an array
+  const getRandomElements = (array, count) => {
+    const shuffled = array.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
+  // Get 3 random fruits
+  const randomFruits = getRandomElements(stringArray, 3);
+
   if ([email, username, password].some((field) => field?.trim() === "")) {
     res.status(500).json("All fields are required");
   }
@@ -56,6 +74,7 @@ const registerUser = asyncHandler(async (req, res) => {
     username: username.toLowerCase(),
     email,
     password,
+    searchPrefrence: randomFruits,
   });
   // remove password and refresh token from response
   const createdUser = await User.findById(user._id).select("-password");
@@ -69,94 +88,91 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    /**
-     ****************** step to Login user ***********************
-     *************************************************************
-     * get user details
-     * check if user exists
-     * check password
-     * create token and refresh token
-     * send cookie
-     * send response
-     *************************************************************
-     */
-  
-    // get user details
-    const { email, password, username } = req.body;
-    if (!(email || username)) {
-      res.status(500).json("email is required");
-    }
-  
-    // check if user exists
-    const user = await User.findOne({
-      $or: [{ username }, { email }],
-    });
-  
-    if (!user) {
-      res.status(500).json("User not found");
-    }
-  
-    // check password
-    const isPasswordValid = await user.isPasswordCorrect(password);
-  
-    if (!isPasswordValid) {
-      res.status(500).json("Invalid password");
-    }
-  
-    // generate access token and refresh token
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokenS(
-      user._id
-    );
-  
-    // get user details and remove password and refresh token
-    const loggedInUser = await User.findOne(user._id).select(
-      "-password -refresh-token"
-    );
-  
-    // security for token
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-  
-    // send response with user details and tokens
-    return res
-      .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { user: loggedInUser, accessToken, refreshToken },
-          "user logged in successfully"
-        )
-      );
-  });
+  /**
+   ****************** step to Login user ***********************
+   *************************************************************
+   * get user details
+   * check if user exists
+   * check password
+   * create token and refresh token
+   * send cookie
+   * send response
+   *************************************************************
+   */
 
-  const logoutUser = asyncHandler(async (req, res) => {
-    await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        $set: {
-          refreshToken: undefined,
-        },
-      },
-      { new: true }
-    );
-  
-    // security for token
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-    return res
-      .status(200)
-      .clearCookie("accessToken", options)
-      .clearCookie("refreshToken", options)
-      .json(new ApiResponse(200, {}, "user logged out successfully"));
-  });
-
-  export {
-    loginUser,
-    registerUser
+  // get user details
+  const { email, password, username } = req.body;
+  if (!(email || username)) {
+    res.status(500).json("email is required");
   }
+
+  // check if user exists
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (!user) {
+    res.status(500).json("User not found");
+  }
+
+  // check password
+  const isPasswordValid = await user.isPasswordCorrect(password);
+
+  if (!isPasswordValid) {
+    res.status(500).json("Invalid password");
+  }
+
+  // generate access token and refresh token
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokenS(
+    user._id
+  );
+
+  // get user details and remove password and refresh token
+  const loggedInUser = await User.findOne(user._id).select(
+    "-password -refresh-token"
+  );
+
+  // security for token
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  // send response with user details and tokens
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "user logged in successfully"
+      )
+    );
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    },
+    { new: true }
+  );
+
+  // security for token
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "user logged out successfully"));
+});
+
+export { loginUser, registerUser, logoutUser };
